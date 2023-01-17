@@ -1,0 +1,500 @@
+Learn to code — free 3,000-hour curriculum
+
+DECEMBER 16, 2017
+/
+#RUBY ON RAILS
+The Ultimate Intermediate Ruby on Rails Tutorial: Let’s Create an Entire App!
+The Ultimate Intermediate Ruby on Rails Tutorial: Let’s Create an Entire App!
+By Domantas G
+There are plenty tutorials online which show how to create your first app. This tutorial will go a step further and explain line-by-line how to create a more complex Ruby On Rails application.
+
+Throughout the whole tutorial, I will gradually introduce new techniques and concepts. The idea is that with every new section you should learn something new.
+
+The following topics will be discussed throughout this guide:
+
+Ruby On Rails basics
+Refactoring: helpers, partials, concerns, design patterns
+Testing: TDD/BDD (RSpec & Capybara), Factories (Factory Girl)
+Action Cable
+Active Job
+CSS, Bootstrap, JavaScript, jQuery
+So what is the app is going to be about?
+It’s going to be a platform where you could search and meet like-minded people.
+
+Main functionalities which the app will have:
+
+Authentication (with Devise)
+Ability to publish posts, and search and categorize them
+Instant messaging (popup windows and a separate messenger), with the ability to create private and group conversations.
+Ability to add users to contacts
+Real time notifications
+You can see how the complete application is going to look.
+
+And you can find the complete project’s source code on GitHub.
+
+Table of Contents
+
+Introduction and Setup Prequisites Setup Create a new app
+Layout Home page Bootstrap Navigation bar Style sheets
+Posts Authentication Helpers Testing Main feed Single post Specific branches Service objects Create a new post
+Instant messaging Private conversation Contacts Group conversation Messenger
+Notifications Contact requests Conversations
+Prerequisites
+I will try to explain every line of code and how I came up with the solutions. I think it is entirely possible for a total beginner to complete this guide. But keep in mind that this tutorial covers some topics which are beyond the basics.
+
+So if you are a total beginner, it’s going to be harder, because your learning curve is going to be pretty steep. I will provide links to resources where you could get some extra information about every new concept we touch.
+
+Ideally, it’s best if you are aware of the fundamentals of:
+
+HTML, CSS, Bootstrap, JavaScript, jQuery
+Ruby, Ruby On Rails
+Git
+Setup
+I assume that you have already set up your basic Ruby On Rails development environment. If not, check RailsInstaller.
+
+I had been developing on Windows 10 for a while. At first it was okay, but after some time I got tired of overcoming mystical obstacles which were caused by Windows. I had to keep figuring out hack ways to make my applications work. I’ve realized that it isn’t worth my time. Overcoming those obstacles didn’t give me any valuable skills or knowledge. I was just spending my time by duct taping Windows 10 setup.
+
+So I switched to a virtual machine instead. I chose to use Vagrant to create a development environment and PuTTY to connect to a virtual machine. If you want to use Vagrant too, this is the tutorial which I found useful.
+
+Create a new app
+We are going to use PostgreSQL as our database. It is a popular choice among Ruby On Rails community. If you haven’t created any Rails apps with PostgreSQL yet, you may want to check this tutorial.
+
+Once you are familiar with PostgreSQL, navigate to a directory where you keep your projects and open a command line prompt.
+
+To generate a new app run this line:
+
+rails new collabfield --database=postgresql
+Collabfield, that’s how our applications is going to be called. By default Rails uses SQlite3, but since we want to use PostgreSQL as our database, we need to specify it by adding:
+
+--database=postgresql
+Now we should’ve successfully generated a new application.
+
+Navigate to a newly created directory by running the command:
+
+cd collabfield
+And now we can run our app by entering:
+
+rails s
+We just started our app. Now we should be able to see what we got so far. Open a browser and go to http://localhost:3000. If everything went well, you should see the Rails signature welcome page.
+
+image-58
+Layout
+Time to code. Where should we start? Well, we can start wherever we want to. When I build a new website, I like to start by creating some kind of basic visual structure and then build everything else around that. Let’s do just that.
+
+Home page
+When we go to http://localhost:3000, we see the Rails welcome page. We’re going to switch this default page with our own home page. In order to do that, generate a new controller called Pages. If you are not familiar with Rails controllers, you should skim through the Action Controller to get an idea what the Rails controller is. Run this line in your command prompt to generate a new controller.
+
+rails g controller pages
+This rails generator should have created some files for us. The output in the command prompt should look something like this:
+
+image-59
+We are going to use this PagesController to manage our special and static pages. Now open the Collabfield project in a text editor. I use Sublime Text, but you can use whatever you want to.
+
+Open a file pages_controller.rb
+
+app/controllers/pages_controller.rb
+We’ll define our home page here. Of course we could define home page in a different controller and in different ways. But usually I like to define the home page inside the PagesController.
+
+When we open pages_controller.rb, we see this:
+
+class PagesController < ApplicationController
+end
+controllers/pages_controller.rb
+It’s an empty class, named PagesController, which inherits from the ApplicationController class. You can find this class’s source code in app/controllers/application_controller.rb.
+
+All our controllers, which we will create, are going to inherit from ApplicationController class. Which means that all methods defined inside this class are going to be available across all our controllers.
+
+We’ll define a public method named index, so it can be callable as an action:
+
+class PagesController < ApplicationController
+
+  def index
+  end
+
+end
+controllers/page_controller.rb
+As you may have read in the Action Controller, routing determines which controller and its public method (action) to call. Let’s define a route, so when we open our root page of the website, Rails knows which controller and its action to call. Open a routes.rb file in app/config/routes.rb.
+
+If you don’t know what Rails routes is, it is a perfect time to get familiar by reading the Rails Routing.
+
+Insert this line:
+
+root to: 'pages#index'
+Your routes.rb file should look like this:
+
+Rails.application.routes.draw do
+  root to: 'pages#index'
+end
+config/routes.rb
+Hash symbol # in Ruby represents a method. As you remember an action is just a public method, so pages#index says “call the PagesController and its public method (action) index.”
+
+If we went to our root path http://localhost:3000, the index action would be called. But we don’t have any templates to render yet. So let’s create a new template for our index action. Go to app/views/pages and create an index.html.erb file inside this directory. Inside this file we can write our regular HTML+ Embedded Ruby code. Just write something inside the file, so we could see the rendered template in the browser.
+
+<h1>Home page</h1>
+Now when we go to http://localhost:3000, we should see something like this instead of the default Rails information page.
+
+image-60
+Now we have a very basic starting point. We can start introducing new things to our website. I think it’s time to create our first commit.
+
+In your command prompt run:
+
+git status
+And you should see something like this:
+
+image-61
+If you don’t already know, when we generate a new application, a new local git repository is initialized.
+
+Add all current changes by running:
+
+git add -A
+Then commit all changes by running:
+
+git commit -m "Generate PagesController. Initialize Home page"
+If we ran this:
+
+git status
+We would see that there’s nothing to commit, because we just successfully committed all changes.
+
+image-4
+Bootstrap
+For the navigation bar and the responsive grid system we’re going to use the Bootstrap library. In order to use this library we have to install the
+
+bootstrap-sass gem. Open the Gemfile in your editor.
+
+collabfield/Gemfile
+Add a bootstrap-sass gem to the Gemfile. As the documentation says, you have to ensure that sass-rails gem is present too.
+
+...
+gem 'bootstrap-sass', '~> 3.3.6'
+gem 'sass-rails', '>= 3.2'
+...
+Save the file and run this to install newly added gems:
+
+bundle install
+If you are still running the application, restart the Rails server to make sure that new gems are available. To restart the server simply shutdown it by pressing Ctrl + C and run rails s command again to boot the server.
+
+Go to assets to open the application.css file:
+
+app/assets/stylesheets/application.css
+
+Below all the commented text add this:
+
+...
+@import "bootstrap-sprockets";
+@import "bootstrap";
+Now change the application.css name to application.scss. This is necessary in order to use Bootstrap library in Rails, also it allows us to use Sass features.
+
+We want to control the order in which all .scss files are rendered, because in the future we might want to create some Sass variables. We want to make sure that our variables are going to be defined before we use them.
+
+To accomplish it, remove those two lines from the application.scss file:
+
+*= require_self
+*= require_tree .
+We’re almost able to use Bootstrap library. There’s a one more thing which we have to do. As the bootstrap-sass docs says, Bootstrap JavaScript is dependent on jQuery library. To use jQuery with Rails, you have to add jquery-rails gem.
+
+gem 'jquery-rails'
+Run…
+
+bundle install
+…again, and restart the server.
+
+Last step is to require Bootstrap and jQuery in the application’s JavaScript file. Go to application.js
+
+app/assets/javascripts/application.js
+Then add the following lines in the file:
+
+//= require jquery
+//= require bootstrap-sprockets
+Commit the changes:
+
+git add -A
+git commit -m "Add and configure bootstrap gem"
+Navigation bar
+For the navigation bar we’ll use Bootstrap’s navbar component as the starting point and then quite modify it. We will store our navigation bar inside a partial template.
+
+We’re doing this because it’s better to keep every component of the app in separate files. It allows to test and manage app’s code much easier. Also we can reuse those components in other parts of the app, without duplicating the code.
+
+Navigate to:
+
+views/layouts
+Create a new file:
+
+_navigation.html.erb
+For partials we use underscore prefix, so the Rails framework can distinguish it as a partial. Now copy and paste navbar component from Bootstrap docs and save the file. To see the partial on the website, we have to render it somewhere. Navigate to views/layouts/application.html.erb . This is the default file where everything gets rendered.
+
+Inside the file we see the following method:
+
+<%= yield %>
+It renders the requested template. To use ruby syntax inside the HTML file, we have to wrap it around with <% %> (embedded ruby allows us to do that). To quickly learn the differences between ERB syntax, checkout this StackOverflow answer.
+
+In Home page section we set the route to recognize the root URL. So whenever we send a GET request to go to a root page, PagesController‘sindex action gets called. And that respective action (in this case the indexaction) responds with a template which gets rendered with the yieldmethod. As you remember, our template for a home page is located at app/views/pages/index.html.erb.
+
+Since we want to have a navigation bar across all pages, we’ll render our navigation bar inside the default application.html.erb file. To render a partial file , simply use the render method and pass partial’s path as an argument. Do it just above the yield method like this:
+
+...
+<%= render 'layouts/navigation' %>
+<%= yield %>
+...
+Now go to http://localhost:3000 and you should be able to see the navigation bar.
+
+image-62
+As mentioned above, we’re going to modify this navigation bar. First let’s remove all <li> and <form> elements. In the future we’ll create our own elements here. The _navigation.html.erb file should look like this now.
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Brand</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+layouts/_navigation.html.erb
+We have a basic responsive navigation bar now. It’s a good time to create a new commit. In command prompt run the following commands:
+
+git add -A
+git commit -m "Add a basic navigation bar
+We should change the navigation bar’s name from Brand to collabfield. Since Brand is a link element, we should use a link_to method to generate links. Why? Because this method allows us to easily generate URI paths. Open a command prompt and navigate to the project’s directory. Run the the following command:
+
+rails routes
+This command outputs our available routes, which are generated by the routes.rbfile. As we see:
+
+image-63
+Currently, we have only one route, the one which we’ve defined before. If you look at the given routes, you can see a Prefix column. We can use those prefixes to generate a path to a wanted page. All we have to do is use a prefix name and add _path to it. If we wrote the root_path, that would generate a path to the root page. So let’s use the power of link_to method and routes.
+
+Replace this line:
+
+<a class="navbar-brand" href="#">Brand</a>
+With this line:
+
+<%= link_to 'collabfield', root_path, class: 'navbar-brand' %>
+Remember that whenever you don’t quite understand how a particular method works, just Google it and you will probably find its documentation with an explanation. Sometimes documentations are poorly written, so you might want to Google a little bit more and you might find a blog or a StackOverflow answer, which would help.
+
+In this case we pass a string as our first argument to add the <a>element’s value, the second argument is needed for a path, this is where routes helps us to generate it. The third argument is optional, which is accumulated inside the options hash. In this case we needed to add navbar-brandclass to keep our Bootstrap powered navigation bar to function.
+
+Let’s do another commit for this small change. In the upcoming section we’ll start changing our app’s design, starting from the navigation bar.
+
+git add -A
+git commit -m "Change navigation bar's brand name from Brand to collabfield"
+Style sheets
+Let me introduce you how I structure my style sheet files. From what I know there aren’t any strong conventions on how to structure your style sheets in Rails. Everyone is doing it slightly differently.
+
+image-64
+This is how I usually structure my files.
+
+Base directory — This is where I keep Sass variables and styles which are used throughout the whole app. For instance default font sizes and default elements’ styles.
+Partials — Most of my styles go there. I keep all styles for separate components and pages in this directory.
+Responsive — Here I define different style rules for different screen sizes. For example, styles for a desktop screen, tablet screen, phone screen, etc.
+First, let’s create a new repository branch by running this:
+
+git checkout -b "styles"
+We’ve just created a new git branch and automatically switched to it. From now on this is how we’re going to implement new changes to the code.
+
+The reason for doing this is that we can isolate our currently functional version (master branch) and write a new code inside a project’s copy, without being afraid to damage anything.
+
+Once we are complete with the implementation, we can just merge changes to the master branch.
+
+Start by creating few directories:
+
+app/assets/stylesheets/partials/layout
+Inside the layout directory create a file navigation.scss and inside the file add:
+
+.navbar-default, .navbar-toggle:focus, .collapsed, button.navbar-toggle {
+  background: $navbarColor !important;
+  border: none;
+  a {
+    color: white !important;
+  }
+}
+app/assets/stylesheets/partials/layout/navigation.scss
+With these lines of code we change navbar’s background and links color. As you may have noticed, a selector is nested inside another declaration block. Sass allows us to use this functionality. !important is used to strictly override default Bootstraps styles. The last thing which you may have noticed is that instead of a color name, we use a Sass variable. The reason for this is that we are going to use this color multiple times across the app. Let’s define this variable.
+
+First create a new folder:
+
+app/assets/stylesheets/base
+Inside the base directory create a new file variables.scss. Inside the file define a variable:
+
+$navbarColor: #323738;
+If you tried to go to http://localhost:3000, you wouldn’t notice any style changes. The reason for that is that in the Bootstrap section we removed these lines:
+
+*= require_self
+*= require_tree .
+from application.scss, to not automatically import all style files.
+
+This means that now we have to import our newly created files to the main application.scss file. The file should look like this now:
+
+// ...default comments
+
+// Bootstrap
+@import "bootstrap-sprockets";
+@import "bootstrap";
+
+// Variables
+@import "base/variables";
+
+// Partials - main css files
+@import "partials/layout/*";
+app/assets/stylesheets/application.scss
+The reason for importing variables.scss file at the top is to make sure that the variables are defined before we use them.
+
+Add some more CSS at the top of the navigation.scss file:
+
+nav {
+  .navbar-header {
+    width: 100%;
+    button, .navbar-brand {
+      transition: opacity 0.15s;
+    }
+    button {
+      margin-right: 0;
+    }
+    button:hover, .navbar-brand:hover {
+      opacity: 0.8;
+    }
+  }
+}
+app/assets/stylesheets/partials/layout/navigation.scss
+Of course you can put this code at the bottom of the file if you want to. Personally, I order and group CSS code based on CSS selectors’ specificity. Again, everyone is doing it slightly differently. I put less specific selectors above and more specific selectors below. So for instance Type selectors go above Class selectors and Class selectors go above ID selectors.
+
+Let’s commit changes:
+
+git add -A
+git commit -m "Add CSS to the navigation bar"
+We want to make sure that the navigation bar is always visible, even when we scroll down. Right now we don’t have enough content to scroll down, but we will in the future. Why don’t we give this feature to the navigation bar right now?
+
+To do that use Bootstrap class navbar-fixed-top. Add this class to the nav element, so it looks like this:
+
+<nav class="navbar navbar-default navbar-fixed-top">
+Also we want to have collabfield to be to the Bootstrap Grid System’sleft side boundaries. Right now it is to the viewport’s left side boundaries, because our class is currently container-fluid. To change that, change the class to container.
+
+It should look like this:
+
+<div class="container">
+Commit the changes:
+
+git add -A
+git commit -m "
+- in _navigation.html.erb add navbar-fixed-top class to nav.
+- Replace container-fluid class with container"
+If you go to http://localhost:3000, you see that the Home page text is hidden under the navigation bar. That’s because of the navbar-fixed-top class. To solve this issue, push the body down by adding the following to navigation.scss:
+
+body {
+ margin-top: 50px;
+}
+At this stage the app should look like this:
+
+image-65
+Commit the change:
+
+git add -A
+git commit -m "Add margin-top 50px to the body"
+As you remember, we’ve created a new branch before and switched to it. It’s time to go back to the master branch.
+
+Run the command:
+
+git branch
+You can see the list of our branches. Currently we’re in the styles branch.
+
+image-66
+To switch back to the master branch, run:
+
+git checkout master
+To merge our all changes, which we did in the styles branch, simply run:
+
+git merge styles
+The command merged those two branches and now we can see the summary of changes we made.
+
+image-67
+We don’t need styles branch anymore, so we can delete it:
+
+git branch -D styles
+Posts
+It’s almost a right time to start implementing the posts functionality. Since our app goal is to let users meet like-minded people, we have to make sure that posts’ authors can be identified. To achieve that, authentication system is required.
+
+Authentication
+For an authentication system we are going to use the devise gem. We could create our own authentication system, but that would require a lot of effort. We’ll choose an easier route. Also it’s a popular choice among Rails community.
+
+Start by creating a new branch:
+
+git checkout -b authentication
+Just like with any other gem, to set it up we’ll follow its documentation. Fortunately, it’s very easy to set up.
+
+Add to your Gemfile
+
+gem 'devise'
+Then run commands:
+
+bundle install
+rails generate devise:install
+You probably see some instructions in the command prompt. We won’t use mailers in this tutorial, so no further configuration is needed.
+
+At this point, if you don’t know anything about Rails models, you should get familiar with them by skimming through Active Record and Active Modeldocumentations.
+
+Now let’s use a devise generator to create a User model.
+
+rails generate devise User
+Initialize a database for the app by running:
+
+rails db:create
+Then run this command to create new tables in your database:
+
+rails db:migrate
+That’s it. Technically our authentication system is set up. Now we can use Devise given methods and create new users. Commit the change:
+
+git add -A
+git commit -m "Add and configure the Devise gem"
+By installing Devise gem, we not only get the back-end functionality, but also default views. If you list your routes by running:
+
+rails routes
+image-68
+You can see that now you have a bunch of new routes. Remember, we only had a one root route until now. If something seems to be confusing, you can always open devise docs and get your answers. Also don’t forget that a lot of same questions come to other people’ s minds. There’s a high chance that you’ll find the answer by Googling too.
+
+Try some of those routes. Go to localhost:3000/users/sign_in and you should see a sign in page.
+
+image-69
+If you went to localhost:3000/users/sign_up, you would see a sign up page too. God Damn! as Noob Noob says. If you look at the views directory, you see that there isn’t any Devise directory, which we could modify. As Devise docs says, in order to modify Devise views, we’ve to generate it with a devise generator. Run
+
+rails generate devise:views
+If you check the views directory, you’ll see a generated devise directory inside. Here we can modify how sign up and login pages are going to look like. Let’s start with the login page, because in our case this is going to be a more straightforward implementation. With the registration page, due to our wanted feature, an extra effort will be required.
+
+Login page
+
+Navigate to and open app/views/devise/sessions/new.html.erb.
+
+This is where the login page views are stored. There’s just a login form inside the file. As you may have noticed, the form_for method is used to generate this form. This is a handy Rails method to generate forms. We’re going to modify this form’s style with bootstrap. Replace all file’s content with:
+
+<%= bootstrap_form_for(resource,
+                       as: resource_name,
+                       url: session_path(resource_name)) do |f| %>
+
+    <%= f.email_field :email,
+                      autofocus: true,
+                      class: 'form-control',
+                      placeholder: 'email' %>
+
+    <%= f.password_field  :password,
+                          autocomplete: "off",
+                          class: 'form-control',
+                          placeholder: 'password' %>
+
+
+  <% if devise_mapping.rememberable? -%>
+     <%= f.check_box :remember_me %>
+  <% end -%>
+
+   <%= f.submit "Log in", class: 'form-control login-button' %>
+<% end %>
